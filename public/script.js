@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const internalDocDisplay = document.getElementById('internal-doc-display');
     const simulateUpdateBtn = document.getElementById('simulate-update-btn');
     const pathwayStatus = document.getElementById('pathway-status');
+    
+    // Get reference to the new user input textarea
+    const externalPolicyInput = document.getElementById('external-policy-input');
 
     let fileCounter = 2; // Start with 2 static file inputs
     const maxFiles = 3;
@@ -127,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
-    // --- CHANGED: call your backend instead of Google directly ---
+    // --- This function now calls backend instead of Google directly ---
     async function callGeminiAPI(docs) {
         try {
             const response = await fetch('/api/analyze', {
@@ -142,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(detail);
             }
 
-            // Backend returns already-parsed JSON matching your schema
             const data = await response.json();
             return { data };
         } catch (error) {
@@ -210,16 +212,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const validDocs = docsToCheck.filter(d => d && d.content);
         
         if (validDocs.length < 2) {
-            const msg = "Please upload at least two documents to compare.";
-            uploadStatus.textContent = `❌ ${msg}`;
-            uploadStatus.classList.add('text-red-600');
+            const msg = "Please provide at least two documents to compare.";
             
+            // Show error in the main results panel for clear, consistent feedback
             resultsContainer.classList.remove('hidden');
             loaderContainer.classList.add('hidden');
             analysisResults.classList.add('hidden');
             reportSection.classList.add('hidden');
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
+
+            if(fromPathway) {
+                pathwayStatus.textContent = `❌ ${msg}`;
+                pathwayStatus.classList.add('text-red-600');
+            } else {
+                uploadStatus.textContent = `❌ ${msg}`;
+                uploadStatus.classList.add('text-red-600');
+            }
             return;
         }
         
@@ -304,35 +313,47 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCounters();
     });
 
+    // --- MODIFIED: Pathway monitor now uses user-provided text ---
     simulateUpdateBtn.addEventListener('click', () => {
         const firstDoc = documents[0];
+        
+        // Check if the first document has been uploaded
         if (!firstDoc) {
             const msg = "Please upload the first document to use the Pathway Live Monitor.";
-            pathwayStatus.textContent = `❌ ${msg}`;
-            pathwayStatus.classList.add('text-red-600');
-            
-            // Show error in the main results panel for clear, consistent feedback
+            handleAnalysis([], true); // Call handleAnalysis with empty array to show error correctly
+            return;
+        }
+
+        const externalPolicyText = externalPolicyInput.value.trim();
+
+        // Check if the user has pasted text into the new textarea
+        if (!externalPolicyText) {
+            const msg = "Please paste the external policy text into the text area below to run a comparison.";
+             // Show error in the main results panel for clear, consistent feedback
             resultsContainer.classList.remove('hidden');
             loaderContainer.classList.add('hidden');
             analysisResults.classList.add('hidden');
             reportSection.classList.add('hidden');
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
+            pathwayStatus.textContent = `❌ ${msg}`;
+            pathwayStatus.classList.add('text-red-600');
             return;
         }
 
         pathwayStatus.textContent = '';
         pathwayStatus.classList.remove('text-red-600');
         
-        const mockExternalPolicy = "University policy updates require all project submissions to be made before midnight (11:59 PM) on the due date. This policy supersedes all previous departmental guidelines.";
-
         const externalDoc = {
-            name: "External University Policy (Simulated)",
-            content: mockExternalPolicy
+            name: "Pasted External Document",
+            content: externalPolicyText
         };
+
+        // Call analysis with the first document and the user-pasted text
         handleAnalysis([firstDoc, externalDoc], true);
     });
 
     // Initial setup
     initializeExistingFileInputs();
 });
+
