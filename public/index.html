@@ -19,24 +19,58 @@
             <p class="mt-2 text-lg text-gray-600">Find contradictions and overlaps in your documents instantly.</p>
         </header>
 
+        <!-- Subscription Plans -->
+        <section class="mb-8">
+             <h2 class="text-xl font-semibold mb-4 text-gray-700 text-center">Choose Your Plan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <!-- Free Tier -->
+                <div id="plan-free" class="plan-card selected">
+                    <h3 class="text-lg font-bold">Free Tier</h3>
+                    <p class="text-3xl font-bold my-2">₹0<span class="text-sm font-normal">/month</span></p>
+                    <ul class="text-sm text-gray-600 space-y-2 my-4">
+                        <li><span class="font-semibold">2</span> Analyses / day</li>
+                        <li><span class="font-semibold">1</span> Report / day</li>
+                        <li>Standard AI Model</li>
+                    </ul>
+                    <button data-plan="free" class="btn btn-secondary w-full plan-select-btn" disabled>Current Plan</button>
+                </div>
+                <!-- Pro Tier -->
+                <div id="plan-pro" class="plan-card">
+                    <h3 class="text-lg font-bold text-indigo-600">Pro Monthly</h3>
+                    <p class="text-3xl font-bold my-2">₹1500<span class="text-sm font-normal">/month</span></p>
+                    <ul class="text-sm text-gray-600 space-y-2 my-4">
+                        <li><span class="font-semibold">50</span> Analyses / month</li>
+                        <li><span class="font-semibold">25</span> Reports / month</li>
+                        <li>Advanced AI Model</li>
+                    </ul>
+                    <button data-plan="pro" class="btn btn-primary w-full plan-select-btn">Upgrade to Pro</button>
+                </div>
+                <!-- Enterprise Tier -->
+                <div id="plan-enterprise" class="plan-card">
+                    <h3 class="text-lg font-bold">Enterprise</h3>
+                    <p class="text-3xl font-bold my-2">Contact Us</p>
+                    <ul class="text-sm text-gray-600 space-y-2 my-4">
+                        <li><span class="font-semibold">Unlimited</span> Analyses</li>
+                        <li><span class="font-semibold">Unlimited</span> Reports</li>
+                        <li>Dedicated Support</li>
+                    </ul>
+                    <button data-plan="enterprise" class="btn btn-secondary w-full plan-select-btn">Contact Sales</button>
+                </div>
+            </div>
+        </section>
+
         <!-- Usage Dashboard -->
         <section class="mb-8">
             <div class="card p-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Flexprice Usage Dashboard</h2>
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Your Current Usage</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
                     <div class="flex items-center justify-center flex-col p-4 bg-blue-50 rounded-lg">
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                             <span id="docs-analyzed-count" class="text-4xl font-bold text-blue-600">0</span>
-                        </div>
-                        <p class="text-sm font-medium text-gray-500 mt-2">Documents Analyzed</p>
+                        <p id="analyses-usage-text" class="text-3xl font-bold text-blue-600">0 / 2</p>
+                        <p id="analyses-usage-title" class="text-sm font-medium text-gray-500 mt-2">Analyses Used Today</p>
                     </div>
                     <div class="flex items-center justify-center flex-col p-4 bg-indigo-50 rounded-lg">
-                         <div class="flex items-center">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                             <span id="reports-generated-count" class="text-4xl font-bold text-indigo-600">0</span>
-                        </div>
-                        <p class="text-sm font-medium text-gray-500 mt-2">Reports Generated</p>
+                        <p id="reports-usage-text" class="text-3xl font-bold text-indigo-600">0 / 1</p>
+                        <p id="reports-usage-title" class="text-sm font-medium text-gray-500 mt-2">Reports Used This Month</p>
                     </div>
                 </div>
             </div>
@@ -54,7 +88,6 @@
                          <button id="analyze-btn" class="btn btn-primary">Analyze Documents</button>
                     </div>
                     <div id="file-upload-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- File inputs will be managed by JS but we can have static ones for initial state -->
                          <div>
                              <label for="file-input-1" id="label-file-input-1" class="file-input-label flex flex-col items-center justify-center">
                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
@@ -154,8 +187,60 @@
             </section>
         </div>
     </div>
+    
+    <!-- Upgrade Modal -->
+    <div id="upgrade-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg p-8 max-w-sm w-full text-center shadow-xl">
+            <h3 class="text-xl font-bold text-gray-900">Usage Limit Reached</h3>
+            <p id="modal-message" class="text-gray-600 my-4">You've used all the analyses available on the Free Tier.</p>
+            <p class="text-gray-600 mb-6">Please upgrade to the Pro Plan to continue.</p>
+            <button id="modal-upgrade-btn" class="btn btn-primary w-full">Upgrade to Pro (₹1500/month)</button>
+            <button id="modal-close-btn" class="mt-2 text-sm text-gray-500">Not now</button>
+        </div>
+    </div>
 
-    <!-- IMPORTANT: The order of these scripts matters. config.js must come first. -->
+    <!-- NEW: Payment Modal Simulation -->
+    <div id="payment-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-xl">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Upgrade to Pro Plan</h3>
+            <p class="text-gray-600 mb-6">You will be charged ₹1500 per month.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="card-name" class="block text-sm font-medium text-gray-700">Name on Card</label>
+                    <input type="text" id="card-name" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="Rohan Sharma">
+                </div>
+                <div>
+                    <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
+                    <input type="text" id="card-number" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="**** **** **** 4242">
+                </div>
+                <div class="flex space-x-4">
+                    <div class="flex-1">
+                        <label for="card-expiry" class="block text-sm font-medium text-gray-700">Expiry (MM/YY)</label>
+                        <input type="text" id="card-expiry" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="12/28">
+                    </div>
+                    <div class="flex-1">
+                        <label for="card-cvc" class="block text-sm font-medium text-gray-700">CVC</label>
+                        <input type="text" id="card-cvc" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="***">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button id="payment-pay-btn" class="btn btn-primary w-full">
+                    <span>Pay ₹1500 and Upgrade</span>
+                    <div id="payment-loader" class="loader hidden"></div>
+                </button>
+                <button id="payment-close-btn" class="mt-2 w-full text-sm text-gray-500">Cancel Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg hidden">
+        Payment Successful! You are now on the Pro Plan.
+    </div>
+
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
