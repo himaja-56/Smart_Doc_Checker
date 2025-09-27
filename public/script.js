@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Pro Monthly',
             analysesPerMonth: 50,
             reportsPerMonth: 25,
-            cost: 1500
+            cost: 299
         },
         enterprise: {
             name: 'Enterprise',
             analysesPerMonth: 'Unlimited',
             reportsPerMonth: 'Unlimited',
-            cost: 'Custom'
+            cost: 599
         }
     };
 
@@ -52,14 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const upgradeModal = document.getElementById('upgrade-modal');
     const modalMessage = document.getElementById('modal-message');
     const modalUpgradeBtn = document.getElementById('modal-upgrade-btn');
+    const modalUpgradeEnterpriseBtn = document.getElementById('modal-upgrade-enterprise-btn');
     const modalCloseBtn = document.getElementById('modal-close-btn');
     
     // Payment Modal elements
     const paymentModal = document.getElementById('payment-modal');
+    const paymentTitle = document.getElementById('payment-title');
+    const paymentCost = document.getElementById('payment-cost');
     const paymentPayBtn = document.getElementById('payment-pay-btn');
+    const paymentButtonText = document.getElementById('payment-button-text');
     const paymentCloseBtn = document.getElementById('payment-close-btn');
     const paymentLoader = document.getElementById('payment-loader');
     const toastNotification = document.getElementById('toast-notification');
+    const toastMessage = document.getElementById('toast-message');
 
     // --- State Variables ---
     let fileCounter = 2;
@@ -67,9 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let documents = [];
     let lastAnalysisResult = null;
     let currentPlanKey = 'free';
-    let unlockedPlans = ['free']; // Tracks plans the user has access to
+    let unlockedPlans = ['free'];
     let usage = { analyses: 0, reports: 0 };
     let lastResetDate = new Date().toLocaleDateString();
+    let planToUpgradeTo = null;
 
     // --- Core Functions ---
     function createFileInput() {
@@ -249,6 +255,17 @@ document.addEventListener('DOMContentLoaded', () => {
         upgradeModal.classList.remove('hidden');
     }
 
+    function showPaymentModal(planKey) {
+        const plan = PLANS[planKey];
+        if (!plan) return;
+        
+        planToUpgradeTo = planKey;
+        paymentTitle.textContent = `Upgrade to ${plan.name}`;
+        paymentCost.textContent = `You will be charged ₹${plan.cost} per month.`;
+        paymentButtonText.textContent = `Pay ₹${plan.cost} and Upgrade`;
+        paymentModal.classList.remove('hidden');
+    }
+
     async function handleAnalysis(docsToCheck, fromPathway = false) {
         checkAndResetUsage();
         const currentPlan = PLANS[currentPlanKey];
@@ -301,16 +318,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handlePlanSelect(planKey) {
-        if (!PLANS[planKey]) return;
+    function handlePlanSelect(planKey, fromStorage = false) {
+        if (!PLANS[planKey] || (currentPlanKey === planKey && !fromStorage)) {
+            return;
+        }
         
         currentPlanKey = planKey;
-        usage = { analyses: 0, reports: 0 };
-        localStorage.setItem('usage', JSON.stringify(usage));
-        localStorage.setItem('currentPlan', planKey);
+
+        if (!fromStorage) {
+            usage = { analyses: 0, reports: 0 };
+            localStorage.setItem('usage', JSON.stringify(usage));
+            localStorage.setItem('currentPlan', planKey);
+        }
         
-        lastResetDate = new Date().toLocaleDateString();
-        localStorage.setItem('lastResetDate', lastResetDate);
+        lastResetDate = localStorage.getItem('lastResetDate') || new Date().toLocaleDateString();
         
         document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('selected'));
         document.getElementById(`plan-${planKey}`).classList.add('selected');
@@ -319,11 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
              const key = btn.dataset.plan;
              if (PLANS[key]) {
                  btn.disabled = false;
-                 // Text depends on whether the plan is unlocked
                  if (unlockedPlans.includes(key)) {
                      btn.textContent = 'Select Plan';
                  } else {
-                     btn.textContent = key === 'pro' ? 'Upgrade to Pro' : 'Select Plan';
+                     btn.textContent = `Upgrade to ${PLANS[key].name.split(' ')[0]}`;
                  }
              }
         });
@@ -342,12 +362,10 @@ document.addEventListener('DOMContentLoaded', () => {
              if (e.target.disabled) return;
              const planKey = e.target.dataset.plan;
 
-             if (planKey === 'enterprise') {
-                 alert('Thank you for your interest! Please contact sales@smartdocchecker.com.');
-             } else if (unlockedPlans.includes(planKey)) {
+             if (unlockedPlans.includes(planKey)) {
                  handlePlanSelect(planKey);
              } else {
-                 paymentModal.classList.remove('hidden');
+                 showPaymentModal(planKey);
              }
         });
     });
@@ -422,48 +440,49 @@ document.addEventListener('DOMContentLoaded', () => {
     
     modalCloseBtn.addEventListener('click', () => upgradeModal.classList.add('hidden'));
     
-    modalUpgradeBtn.addEventListener('click', () => {
-        upgradeModal.classList.add('hidden');
-        paymentModal.classList.remove('hidden');
+    [modalUpgradeBtn, modalUpgradeEnterpriseBtn].forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            upgradeModal.classList.add('hidden');
+            showPaymentModal(e.target.dataset.plan);
+        });
     });
 
     paymentCloseBtn.addEventListener('click', () => paymentModal.classList.add('hidden'));
 
     paymentPayBtn.addEventListener('click', () => {
+        if (!planToUpgradeTo) return;
+        
+        const plan = PLANS[planToUpgradeTo];
         paymentPayBtn.disabled = true;
         paymentLoader.classList.remove('hidden');
-        paymentPayBtn.querySelector('span').textContent = 'Processing...';
+        paymentButtonText.textContent = 'Processing...';
 
         setTimeout(() => {
             paymentModal.classList.add('hidden');
             paymentPayBtn.disabled = false;
             paymentLoader.classList.add('hidden');
-            paymentPayBtn.querySelector('span').textContent = 'Pay ₹1500 and Upgrade';
-
-            if (!unlockedPlans.includes('pro')) {
-                unlockedPlans.push('pro');
+            
+            if (!unlockedPlans.includes(planToUpgradeTo)) {
+                unlockedPlans.push(planToUpgradeTo);
                 localStorage.setItem('unlockedPlans', JSON.stringify(unlockedPlans));
             }
 
-            handlePlanSelect('pro');
+            handlePlanSelect(planToUpgradeTo);
             
+            toastMessage.textContent = `Payment Successful! You are now on the ${plan.name}.`;
             toastNotification.classList.remove('hidden');
             setTimeout(() => {
                 toastNotification.classList.add('hidden');
             }, 3000);
+            
+            planToUpgradeTo = null;
 
         }, 2000);
     });
 
-    // --- MODIFIED: Initial Setup ---
     function initializeApp() {
-        // Clear localStorage on every new session for a clean demo ---
-        localStorage.removeItem('currentPlan');
-        localStorage.removeItem('unlockedPlans');
-        localStorage.removeItem('usage');
-        localStorage.removeItem('lastResetDate');
+        localStorage.clear(); // Ensure clean slate for demo
 
-        // Always start fresh on the free plan
         handlePlanSelect('free');
         
         initializeExistingFileInputs();
