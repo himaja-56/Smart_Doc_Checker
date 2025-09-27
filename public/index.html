@@ -29,7 +29,7 @@
                     <p class="text-3xl font-bold my-2">₹0<span class="text-sm font-normal">/month</span></p>
                     <ul class="text-sm text-gray-600 space-y-2 my-4">
                         <li><span class="font-semibold">2</span> Analyses / day</li>
-                        <li><span class="font-semibold">1</span> Report / day</li>
+                        <li><span class="font-semibold">1</span> Report / month</li>
                         <li>Standard AI Model</li>
                     </ul>
                     <button data-plan="free" class="btn btn-secondary w-full plan-select-btn" disabled>Current Plan</button>
@@ -37,7 +37,7 @@
                 <!-- Pro Tier -->
                 <div id="plan-pro" class="plan-card">
                     <h3 class="text-lg font-bold text-indigo-600">Pro Monthly</h3>
-                    <p class="text-3xl font-bold my-2">₹1500<span class="text-sm font-normal">/month</span></p>
+                    <p class="text-3xl font-bold my-2">₹299<span class="text-sm font-normal">/month</span></p>
                     <ul class="text-sm text-gray-600 space-y-2 my-4">
                         <li><span class="font-semibold">50</span> Analyses / month</li>
                         <li><span class="font-semibold">25</span> Reports / month</li>
@@ -47,14 +47,14 @@
                 </div>
                 <!-- Enterprise Tier -->
                 <div id="plan-enterprise" class="plan-card">
-                    <h3 class="text-lg font-bold">Enterprise</h3>
-                    <p class="text-3xl font-bold my-2">Contact Us</p>
+                    <h3 class="text-lg font-bold text-gray-800">Enterprise</h3>
+                    <p class="text-3xl font-bold my-2">₹599<span class="text-sm font-normal">/month</span></p>
                     <ul class="text-sm text-gray-600 space-y-2 my-4">
                         <li><span class="font-semibold">Unlimited</span> Analyses</li>
                         <li><span class="font-semibold">Unlimited</span> Reports</li>
                         <li>Dedicated Support</li>
                     </ul>
-                    <button data-plan="enterprise" class="btn btn-secondary w-full plan-select-btn">Contact Sales</button>
+                    <button data-plan="enterprise" class="btn btn-secondary w-full plan-select-btn">Upgrade to Enterprise</button>
                 </div>
             </div>
         </section>
@@ -193,17 +193,18 @@
         <div class="bg-white rounded-lg p-8 max-w-sm w-full text-center shadow-xl">
             <h3 class="text-xl font-bold text-gray-900">Usage Limit Reached</h3>
             <p id="modal-message" class="text-gray-600 my-4">You've used all the analyses available on the Free Tier.</p>
-            <p class="text-gray-600 mb-6">Please upgrade to the Pro Plan to continue.</p>
-            <button id="modal-upgrade-btn" class="btn btn-primary w-full">Upgrade to Pro (₹1500/month)</button>
+            <p class="text-gray-600 mb-6">Please upgrade to continue.</p>
+            <button id="modal-upgrade-btn" data-plan="pro" class="btn btn-primary w-full">Upgrade to Pro (₹299/month)</button>
+            <button id="modal-upgrade-enterprise-btn" data-plan="enterprise" class="btn btn-secondary w-full mt-2">Upgrade to Enterprise (₹599/month)</button>
             <button id="modal-close-btn" class="mt-2 text-sm text-gray-500">Not now</button>
         </div>
     </div>
 
-    <!-- NEW: Payment Modal Simulation -->
+    <!-- Payment Modal Simulation -->
     <div id="payment-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-xl">
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Upgrade to Pro Plan</h3>
-            <p class="text-gray-600 mb-6">You will be charged ₹1500 per month.</p>
+            <h3 id="payment-title" class="text-xl font-bold text-gray-900 mb-2">Upgrade to Pro Plan</h3>
+            <p id="payment-cost" class="text-gray-600 mb-6">You will be charged ₹299 per month.</p>
             
             <div class="space-y-4">
                 <div>
@@ -228,7 +229,7 @@
 
             <div class="mt-6">
                 <button id="payment-pay-btn" class="btn btn-primary w-full">
-                    <span>Pay ₹1500 and Upgrade</span>
+                    <span id="payment-button-text">Pay ₹299 and Upgrade</span>
                     <div id="payment-loader" class="loader hidden"></div>
                 </button>
                 <button id="payment-close-btn" class="mt-2 w-full text-sm text-gray-500">Cancel Payment</button>
@@ -238,9 +239,10 @@
 
     <!-- Toast Notification -->
     <div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg hidden">
-        Payment Successful! You are now on the Pro Plan.
+        <span id="toast-message">Payment Successful! You have been upgraded.</span>
     </div>
 
+    <!-- IMPORTANT: The order of these scripts matters. config.js must come first. -->
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
