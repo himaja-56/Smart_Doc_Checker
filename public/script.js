@@ -1,40 +1,77 @@
 // --- CLIENT NOW CALLS BACKEND; NO API KEY ON THE FRONTEND ---
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Pricing & Plan Configuration ---
+    const PLANS = {
+        free: {
+            name: 'Free Tier',
+            analysesPerDay: 2,
+            reportsPerMonth: 1,
+            cost: 0
+        },
+        pro: {
+            name: 'Pro Monthly',
+            analysesPerMonth: 50,
+            reportsPerMonth: 25,
+            cost: 1500
+        },
+        enterprise: {
+            name: 'Enterprise',
+            analysesPerMonth: 'Unlimited',
+            reportsPerMonth: 'Unlimited',
+            cost: 'Custom'
+        }
+    };
+
+    // --- Element References ---
+    const analysesUsageText = document.getElementById('analyses-usage-text');
+    const reportsUsageText = document.getElementById('reports-usage-text');
+    const analysesUsageTitle = document.getElementById('analyses-usage-title');
+    const reportsUsageTitle = document.getElementById('reports-usage-title');
     const fileUploadContainer = document.getElementById('file-upload-container');
     const addFileBtn = document.getElementById('add-file-btn');
     const analyzeBtn = document.getElementById('analyze-btn');
     const uploadStatus = document.getElementById('upload-status');
-    const docsAnalyzedCount = document.getElementById('docs-analyzed-count');
-    const reportsGeneratedCount = document.getElementById('reports-generated-count');
-
     const resultsContainer = document.getElementById('results-container');
     const loaderContainer = document.getElementById('loader-container');
     const analysisResults = document.getElementById('analysis-results');
     const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
-    
     const contradictionsList = document.getElementById('contradictions-list');
     const overlapsList = document.getElementById('overlaps-list');
     const noIssuesSection = document.getElementById('no-issues-section');
-
     const generateReportBtn = document.getElementById('generate-report-btn');
     const reportSection = document.getElementById('report-section');
     const reportOutput = document.getElementById('report-output');
-
     const internalDocDisplay = document.getElementById('internal-doc-display');
     const simulateUpdateBtn = document.getElementById('simulate-update-btn');
     const pathwayStatus = document.getElementById('pathway-status');
-    
-    // Get reference to the new user input textarea
     const externalPolicyInput = document.getElementById('external-policy-input');
+    
+    // Modal elements
+    const upgradeModal = document.getElementById('upgrade-modal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalUpgradeBtn = document.getElementById('modal-upgrade-btn');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    
+    // Payment Modal elements
+    const paymentModal = document.getElementById('payment-modal');
+    const paymentPayBtn = document.getElementById('payment-pay-btn');
+    const paymentCloseBtn = document.getElementById('payment-close-btn');
+    const paymentLoader = document.getElementById('payment-loader');
+    const toastNotification = document.getElementById('toast-notification');
 
-    let fileCounter = 2; // Start with 2 static file inputs
+    // --- State Variables ---
+    let fileCounter = 2;
     const maxFiles = 3;
     let documents = [];
     let lastAnalysisResult = null;
-    let usage = { docsAnalyzed: 0, reportsGenerated: 0 };
+    let currentPlanKey = 'free';
+    let unlockedPlans = ['free']; // Tracks plans the user has access to
+    let usage = { analyses: 0, reports: 0 };
+    let lastResetDate = new Date().toLocaleDateString();
 
+    // --- Core Functions ---
     function createFileInput() {
         if (fileCounter >= maxFiles) {
             addFileBtn.disabled = true;
@@ -54,23 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="file" id="${fileInputId}" class="hidden" accept=".txt,.md">
         `;
         fileUploadContainer.appendChild(fileDiv);
-
         const fileInput = document.getElementById(fileInputId);
         const label = document.getElementById(labelId);
         const textElement = document.getElementById(textId);
-        
         attachEventListenersToInput(fileInput, label, textElement, fileCounter - 1);
     }
     
     function attachEventListenersToInput(fileInput, label, textElement, index) {
         if (!fileInput || !label || !textElement) return;
-
         fileInput.addEventListener('change', (e) => handleFileSelect(e, index, textElement));
-        
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             label.addEventListener(eventName, preventDefaults, false);
         });
-        
         label.addEventListener('dragenter', () => label.classList.add('dragover'));
         label.addEventListener('dragleave', () => label.classList.remove('dragover'));
         label.addEventListener('drop', (e) => {
@@ -98,31 +130,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFileSelect(event, index, textElement) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-
         reader.onerror = () => {
-            console.error("FileReader error: Could not read the file.");
-            uploadStatus.textContent = `❌ Error reading file "${file.name}". Please use valid .txt or .md files.`;
+            uploadStatus.textContent = `❌ Error reading file "${file.name}".`;
             uploadStatus.classList.add('text-red-600');
             textElement.textContent = `Could not read file`;
             textElement.classList.remove('text-green-600');
             textElement.classList.add('text-red-600');
         };
-
         reader.onload = (e) => {
-            documents[index] = {
-                name: file.name,
-                content: e.target.result
-            };
+            documents[index] = { name: file.name, content: e.target.result };
             textElement.textContent = `✔️ ${file.name}`;
             textElement.classList.remove('text-red-600');
             textElement.classList.add('text-green-600');
-            
             const uploadedCount = documents.filter(d => d).length;
-            uploadStatus.textContent = `Successfully loaded "${file.name}". Total documents ready: ${uploadedCount}.`;
+            uploadStatus.textContent = `Successfully loaded "${file.name}". Total ready: ${uploadedCount}.`;
             uploadStatus.classList.remove('text-red-600');
-
             if (index === 0) {
                 internalDocDisplay.value = `Document: ${file.name}\n\n---\n\n${e.target.result}`;
             }
@@ -130,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
-    // --- This function now calls backend instead of Google directly ---
     async function callGeminiAPI(docs) {
         try {
             const response = await fetch('/api/analyze', {
@@ -138,15 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ docs })
             });
-
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({}));
-                const detail = errorBody?.error || `The server responded with status ${response.status}. Please try again later.`;
+                const detail = errorBody?.error || `The server responded with status ${response.status}.`;
                 throw new Error(detail);
             }
-
-            const data = await response.json();
-            return { data };
+            return { data: await response.json() };
         } catch (error) {
             console.error("Error calling backend /api/analyze:", error);
             return { error: error.message || 'Network error calling analysis service.' };
@@ -177,9 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `
                     <p class="font-bold text-red-800">${c.topic}</p>
                     <p class="mt-2 text-sm text-gray-700">${c.explanation}</p>
-                    <div class="mt-3 space-y-2 text-sm">
-                        ${c.details.map(d => `<div class="p-2 bg-white rounded border"><strong>${d.docName}:</strong> "${d.statement}"</div>`).join('')}
-                    </div>
+                    <div class="mt-3 space-y-2 text-sm">${c.details.map(d => `<div class="p-2 bg-white rounded border"><strong>${d.docName}:</strong> "${d.statement}"</div>`).join('')}</div>
                     <p class="mt-3 text-sm p-2 bg-green-100 border border-green-200 rounded text-green-800"><strong>Suggestion:</strong> ${c.suggestion}</p>
                 `;
                 contradictionsList.appendChild(item);
@@ -193,42 +210,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.className = 'p-4 border border-blue-200 bg-blue-50 rounded-lg';
                 item.innerHTML = `
                     <p class="font-bold text-blue-800">${o.topic}</p>
-                     <p class="mt-2 text-sm text-gray-700">${o.explanation}</p>
-                    <div class="mt-3 space-y-2 text-sm">
-                        ${o.details.map(d => `<div class="p-2 bg-white rounded border"><strong>${d.docName}:</strong> "${d.statement}"</div>`).join('')}
-                    </div>
+                    <p class="mt-2 text-sm text-gray-700">${o.explanation}</p>
+                    <div class="mt-3 space-y-2 text-sm">${o.details.map(d => `<div class="p-2 bg-white rounded border"><strong>${d.docName}:</strong> "${d.statement}"</div>`).join('')}</div>
                 `;
                 overlapsList.appendChild(item);
             });
         }
     }
+    
+    function checkAndResetUsage() {
+        const today = new Date().toLocaleDateString();
+        const savedDate = localStorage.getItem('lastResetDate');
+        const currentPlan = PLANS[currentPlanKey];
+        
+        if (currentPlan.name === 'Free Tier' && today !== savedDate) {
+            usage.analyses = 0;
+            localStorage.setItem('usage', JSON.stringify(usage));
+            localStorage.setItem('lastResetDate', today);
+            lastResetDate = today;
+        }
+    }
 
-    function updateCounters() {
-        docsAnalyzedCount.textContent = usage.docsAnalyzed;
-        reportsGeneratedCount.textContent = usage.reportsGenerated;
+    function updateDashboard() {
+        const currentPlan = PLANS[currentPlanKey];
+        const isFreePlan = currentPlan.name === 'Free Tier';
+        const analysesLimit = isFreePlan ? currentPlan.analysesPerDay : currentPlan.analysesPerMonth;
+        const reportsLimit = currentPlan.reportsPerMonth;
+        
+        analysesUsageText.textContent = `${usage.analyses} / ${analysesLimit}`;
+        reportsUsageText.textContent = `${usage.reports} / ${reportsLimit}`;
+
+        analysesUsageTitle.textContent = isFreePlan ? 'Analyses Used Today' : 'Analyses Used This Month';
+        reportsUsageTitle.textContent = 'Reports Used This Month';
+    }
+
+    function showUpgradeModal(type = 'analyses') {
+        modalMessage.textContent = `You've used all the ${type} available on the ${PLANS[currentPlanKey].name}.`;
+        upgradeModal.classList.remove('hidden');
     }
 
     async function handleAnalysis(docsToCheck, fromPathway = false) {
+        checkAndResetUsage();
+        const currentPlan = PLANS[currentPlanKey];
+
+        const analysesLimit = currentPlan.name === 'Free Tier' ? currentPlan.analysesPerDay : currentPlan.analysesPerMonth;
+        if (analysesLimit !== 'Unlimited' && usage.analyses >= analysesLimit) {
+            showUpgradeModal('analyses');
+            return;
+        }
+
         const validDocs = docsToCheck.filter(d => d && d.content);
-        
         if (validDocs.length < 2) {
             const msg = "Please provide at least two documents to compare.";
-            
-            // Show error in the main results panel for clear, consistent feedback
             resultsContainer.classList.remove('hidden');
             loaderContainer.classList.add('hidden');
             analysisResults.classList.add('hidden');
             reportSection.classList.add('hidden');
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
-
-            if(fromPathway) {
-                pathwayStatus.textContent = `❌ ${msg}`;
-                pathwayStatus.classList.add('text-red-600');
-            } else {
-                uploadStatus.textContent = `❌ ${msg}`;
-                uploadStatus.classList.add('text-red-600');
-            }
+            const statusTarget = fromPathway ? pathwayStatus : uploadStatus;
+            statusTarget.textContent = `❌ ${msg}`;
+            statusTarget.classList.add('text-red-600');
             return;
         }
         
@@ -238,12 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         reportSection.classList.add('hidden');
         errorContainer.classList.add('hidden');
         
-        if (fromPathway) {
-            pathwayStatus.textContent = "Checking for new conflicts...";
-        } else {
-            uploadStatus.textContent = '';
-            uploadStatus.classList.remove('text-red-600');
-        }
+        const statusTarget = fromPathway ? pathwayStatus : uploadStatus;
+        statusTarget.textContent = fromPathway ? "Checking for new conflicts..." : '';
+        statusTarget.classList.remove('text-red-600');
 
         const response = await callGeminiAPI(validDocs);
         
@@ -251,85 +290,117 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.data) {
             analysisResults.classList.remove('hidden');
             displayResults(response.data);
-            usage.docsAnalyzed++;
-            updateCounters();
-            if (fromPathway) {
-                pathwayStatus.textContent = "✅ Check complete. See results on the right.";
-            }
+            usage.analyses++;
+            localStorage.setItem('usage', JSON.stringify(usage));
+            updateDashboard();
+            if (fromPathway) pathwayStatus.textContent = "✅ Check complete. See results on the right.";
         } else {
             errorMessage.textContent = response.error;
             errorContainer.classList.remove('hidden');
-            if (fromPathway) {
-                pathwayStatus.textContent = "❌ Analysis failed.";
-            }
+            if (fromPathway) pathwayStatus.textContent = "❌ Analysis failed.";
         }
     }
+
+    function handlePlanSelect(planKey) {
+        if (!PLANS[planKey]) return;
+        
+        currentPlanKey = planKey;
+        usage = { analyses: 0, reports: 0 };
+        localStorage.setItem('usage', JSON.stringify(usage));
+        localStorage.setItem('currentPlan', planKey);
+        
+        lastResetDate = new Date().toLocaleDateString();
+        localStorage.setItem('lastResetDate', lastResetDate);
+        
+        document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById(`plan-${planKey}`).classList.add('selected');
+
+        document.querySelectorAll('.plan-select-btn').forEach(btn => {
+             const key = btn.dataset.plan;
+             if (PLANS[key]) {
+                 btn.disabled = false;
+                 // Text depends on whether the plan is unlocked
+                 if (unlockedPlans.includes(key)) {
+                     btn.textContent = 'Select Plan';
+                 } else {
+                     btn.textContent = key === 'pro' ? 'Upgrade to Pro' : 'Select Plan';
+                 }
+             }
+        });
+        
+        const selectedBtn = document.querySelector(`#plan-${planKey} .plan-select-btn`);
+        if (selectedBtn) {
+            selectedBtn.textContent = 'Current Plan';
+            selectedBtn.disabled = true;
+        }
+
+        updateDashboard();
+    }
+    
+    document.querySelectorAll('.plan-select-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+             if (e.target.disabled) return;
+             const planKey = e.target.dataset.plan;
+
+             if (planKey === 'enterprise') {
+                 alert('Thank you for your interest! Please contact sales@smartdocchecker.com.');
+             } else if (unlockedPlans.includes(planKey)) {
+                 handlePlanSelect(planKey);
+             } else {
+                 paymentModal.classList.remove('hidden');
+             }
+        });
+    });
 
     analyzeBtn.addEventListener('click', () => handleAnalysis(documents));
     addFileBtn.addEventListener('click', createFileInput);
 
     generateReportBtn.addEventListener('click', () => {
-        if (!lastAnalysisResult) {
+        const currentPlan = PLANS[currentPlanKey];
+        const reportsLimit = currentPlan.reportsPerMonth;
+        if (reportsLimit !== 'Unlimited' && usage.reports >= reportsLimit) {
+            showUpgradeModal('reports');
             return;
         }
-
-        let reportText = `SMART DOC CHECKER - ANALYSIS REPORT\n`;
-        reportText += `=====================================\n\n`;
-        reportText += `Date: ${new Date().toLocaleString()}\n`;
+        if (!lastAnalysisResult) return;
+        let reportText = `SMART DOC CHECKER - ANALYSIS REPORT\n\n=====================================\n\nDate: ${new Date().toLocaleString()}\n`;
         const docNames = documents.filter(d => d).map(d => d.name).join(', ');
         reportText += `Documents Analyzed: ${docNames}\n\n`;
-        
-        if (lastAnalysisResult.contradictions && lastAnalysisResult.contradictions.length > 0) {
+        if (lastAnalysisResult.contradictions?.length) {
             reportText += `--- CONTRADICTIONS ---\n`;
             lastAnalysisResult.contradictions.forEach((c, i) => {
-                reportText += `\n${i + 1}. Topic: ${c.topic}\n`;
-                reportText += `   Explanation: ${c.explanation}\n`;
-                c.details.forEach(d => {
-                    reportText += `   - In "${d.docName}": "${d.statement}"\n`;
-                });
+                reportText += `\n${i + 1}. Topic: ${c.topic}\n   Explanation: ${c.explanation}\n`;
+                c.details.forEach(d => { reportText += `   - In "${d.docName}": "${d.statement}"\n`; });
                 reportText += `   Suggestion: ${c.suggestion}\n`;
             });
         } else {
             reportText += `--- No contradictions found. ---\n`;
         }
-        
-        if (lastAnalysisResult.overlaps && lastAnalysisResult.overlaps.length > 0) {
+        if (lastAnalysisResult.overlaps?.length) {
             reportText += `\n\n--- OVERLAPS ---\n`;
             lastAnalysisResult.overlaps.forEach((o, i) => {
-                reportText += `\n${i + 1}. Topic: ${o.topic}\n`;
-                reportText += `   Explanation: ${o.explanation}\n`;
-                o.details.forEach(d => {
-                    reportText += `   - In "${d.docName}": "${d.statement}"\n`;
-                });
+                reportText += `\n${i + 1}. Topic: ${o.topic}\n   Explanation: ${o.explanation}\n`;
+                o.details.forEach(d => { reportText += `   - In "${d.docName}": "${d.statement}"\n`; });
             });
         } else {
             reportText += `\n--- No significant overlaps found. ---\n`;
         }
-
         reportOutput.textContent = reportText;
         reportSection.classList.remove('hidden');
-
-        usage.reportsGenerated++;
-        updateCounters();
+        usage.reports++;
+        localStorage.setItem('usage', JSON.stringify(usage));
+        updateDashboard();
     });
 
-    // --- MODIFIED: Pathway monitor now uses user-provided text ---
     simulateUpdateBtn.addEventListener('click', () => {
         const firstDoc = documents[0];
-        
-        // Check if the first document has been uploaded
         if (!firstDoc) {
-            const msg = "Please upload the first document to use the Pathway Live Monitor.";
-            handleAnalysis([], true); // Call handleAnalysis with empty array to show error correctly
+            handleAnalysis([], true);
             return;
         }
-
         const externalPolicyText = externalPolicyInput.value.trim();
-
-        // Check if the user has pasted text into the new textarea
         if (!externalPolicyText) {
             const msg = "Please paste the external policy text into the text area below to run a comparison.";
-             // Show error in the main results panel for clear, consistent feedback
             resultsContainer.classList.remove('hidden');
             loaderContainer.classList.add('hidden');
             analysisResults.classList.add('hidden');
@@ -340,20 +411,65 @@ document.addEventListener('DOMContentLoaded', () => {
             pathwayStatus.classList.add('text-red-600');
             return;
         }
-
         pathwayStatus.textContent = '';
         pathwayStatus.classList.remove('text-red-600');
-        
         const externalDoc = {
             name: "Pasted External Document",
             content: externalPolicyText
         };
-
-        // Call analysis with the first document and the user-pasted text
         handleAnalysis([firstDoc, externalDoc], true);
     });
+    
+    modalCloseBtn.addEventListener('click', () => upgradeModal.classList.add('hidden'));
+    
+    modalUpgradeBtn.addEventListener('click', () => {
+        upgradeModal.classList.add('hidden');
+        paymentModal.classList.remove('hidden');
+    });
 
-    // Initial setup
-    initializeExistingFileInputs();
+    paymentCloseBtn.addEventListener('click', () => paymentModal.classList.add('hidden'));
+
+    paymentPayBtn.addEventListener('click', () => {
+        paymentPayBtn.disabled = true;
+        paymentLoader.classList.remove('hidden');
+        paymentPayBtn.querySelector('span').textContent = 'Processing...';
+
+        setTimeout(() => {
+            paymentModal.classList.add('hidden');
+            paymentPayBtn.disabled = false;
+            paymentLoader.classList.add('hidden');
+            paymentPayBtn.querySelector('span').textContent = 'Pay ₹1500 and Upgrade';
+
+            if (!unlockedPlans.includes('pro')) {
+                unlockedPlans.push('pro');
+                localStorage.setItem('unlockedPlans', JSON.stringify(unlockedPlans));
+            }
+
+            handlePlanSelect('pro');
+            
+            toastNotification.classList.remove('hidden');
+            setTimeout(() => {
+                toastNotification.classList.add('hidden');
+            }, 3000);
+
+        }, 2000);
+    });
+
+    // --- MODIFIED: Initial Setup ---
+    function initializeApp() {
+        // Clear localStorage on every new session for a clean demo ---
+        localStorage.removeItem('currentPlan');
+        localStorage.removeItem('unlockedPlans');
+        localStorage.removeItem('usage');
+        localStorage.removeItem('lastResetDate');
+
+        // Always start fresh on the free plan
+        handlePlanSelect('free');
+        
+        initializeExistingFileInputs();
+        updateDashboard();
+    }
+
+    initializeApp();
 });
 
