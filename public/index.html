@@ -5,246 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Doc Checker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Smart Doc Checker</h1>
-            <p class="mt-2 text-lg text-gray-600">Find contradictions and overlaps in your documents instantly.</p>
-        </header>
+<div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
-        <!-- Subscription Plans -->
-        <section class="mb-8">
-             <h2 class="text-xl font-semibold mb-4 text-gray-700 text-center">Choose Your Plan</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <!-- Free Tier -->
-                <div id="plan-free" class="plan-card selected">
-                    <h3 class="text-lg font-bold">Free Tier</h3>
-                    <p class="text-3xl font-bold my-2">₹0<span class="text-sm font-normal">/month</span></p>
-                    <ul class="text-sm text-gray-600 space-y-2 my-4">
-                        <li><span class="font-semibold">2</span> Analyses / day</li>
-                        <li><span class="font-semibold">1</span> Report / month</li>
-                        <li>Standard AI Model</li>
-                    </ul>
-                    <button data-plan="free" class="btn btn-secondary w-full plan-select-btn" disabled>Current Plan</button>
-                </div>
-                <!-- Pro Tier -->
-                <div id="plan-pro" class="plan-card">
-                    <h3 class="text-lg font-bold text-indigo-600">Pro Monthly</h3>
-                    <p class="text-3xl font-bold my-2">₹299<span class="text-sm font-normal">/month</span></p>
-                    <ul class="text-sm text-gray-600 space-y-2 my-4">
-                        <li><span class="font-semibold">50</span> Analyses / month</li>
-                        <li><span class="font-semibold">25</span> Reports / month</li>
-                        <li>Advanced AI Model</li>
-                    </ul>
-                    <button data-plan="pro" class="btn btn-primary w-full plan-select-btn">Upgrade to Pro</button>
-                </div>
-                <!-- Enterprise Tier -->
-                <div id="plan-enterprise" class="plan-card">
-                    <h3 class="text-lg font-bold text-gray-800">Enterprise</h3>
-                    <p class="text-3xl font-bold my-2">₹599<span class="text-sm font-normal">/month</span></p>
-                    <ul class="text-sm text-gray-600 space-y-2 my-4">
-                        <li><span class="font-semibold">Unlimited</span> Analyses</li>
-                        <li><span class="font-semibold">Unlimited</span> Reports</li>
-                        <li>Dedicated Support</li>
-                    </ul>
-                    <button data-plan="enterprise" class="btn btn-secondary w-full plan-select-btn">Upgrade to Enterprise</button>
-                </div>
-            </div>
-        </section>
+    <header class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Smart Doc Checker</h1>
+        <p class="mt-2 text-lg text-gray-600">
+            Find contradictions and significant overlaps across multiple documents instantly.
+        </p>
+    </header>
 
-        <!-- Usage Dashboard -->
-        <section class="mb-8">
-            <div class="card p-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Your Current Usage</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
-                    <div class="flex items-center justify-center flex-col p-4 bg-blue-50 rounded-lg">
-                        <p id="analyses-usage-text" class="text-3xl font-bold text-blue-600">0 / 2</p>
-                        <p id="analyses-usage-title" class="text-sm font-medium text-gray-500 mt-2">Analyses Used Today</p>
-                    </div>
-                    <div class="flex items-center justify-center flex-col p-4 bg-indigo-50 rounded-lg">
-                        <p id="reports-usage-text" class="text-3xl font-bold text-indigo-600">0 / 1</p>
-                        <p id="reports-usage-title" class="text-sm font-medium text-gray-500 mt-2">Reports Used This Month</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Left Column: Upload and Pathway -->
-            <div class="space-y-8">
-                <!-- Document Upload -->
-                <section class="card p-6">
-                    <h2 class="text-xl font-semibold mb-2 text-gray-700">1. Upload Your Documents</h2>
-                     <div class="flex justify-between items-center mb-4">
-                         <button id="add-file-btn" class="btn btn-secondary text-sm">Add Another Doc</button>
-                         <button id="analyze-btn" class="btn btn-primary">Analyze Documents</button>
-                    </div>
-                    <div id="file-upload-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                         <div>
-                             <label for="file-input-1" id="label-file-input-1" class="file-input-label flex flex-col items-center justify-center">
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                 <span id="text-file-input-1" class="mt-2 text-sm font-medium text-gray-600">Choose Document 1 (.txt, .md)</span>
-                             </label>
-                             <input type="file" id="file-input-1" class="hidden" accept=".txt,.md">
-                        </div>
-                         <div>
-                             <label for="file-input-2" id="label-file-input-2" class="file-input-label flex flex-col items-center justify-center">
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                 <span id="text-file-input-2" class="mt-2 text-sm font-medium text-gray-600">Choose Document 2 (.txt, .md)</span>
-                             </label>
-                             <input type="file" id="file-input-2" class="hidden" accept=".txt,.md">
-                        </div>
-                    </div>
-                    <p id="upload-status" class="text-sm mt-4 text-center text-gray-600 min-h-[20px]"></p>
-                </section>
+        <!-- LEFT COLUMN -->
+        <div class="space-y-8">
 
-                <!-- Pathway Live Monitor -->
-                <section class="card p-6">
-                      <h2 class="text-xl font-semibold mb-4 text-gray-700 flex items-center">
-                          <span class="relative flex h-3 w-3 mr-3">
-                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                          </span>
-                          Pathway Live Monitor
-                      </h2>
-                    <p class="text-sm text-gray-600 mb-4">Compare your first document against any text you provide below.</p>
-                    <div class="space-y-4">
-                        <div>
-                              <label for="internal-doc-display" class="block text-sm font-medium text-gray-700 mb-1">Your First Document (for comparison)</label>
-                            <textarea id="internal-doc-display" rows="5" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100" readonly>Upload your first document to enable this feature.</textarea>
-                        </div>
-                        <div>
-                            <label for="external-policy-input" class="block text-sm font-medium text-gray-700 mb-1">Paste External Policy Text Here</label>
-                            <textarea id="external-policy-input" rows="5" class="w-full p-2 border border-gray-300 rounded-md bg-white focus:ring-indigo-500 focus:border-indigo-500" placeholder="Paste the content of the document you want to compare against..."></textarea>
-                        </div>
-                    </div>
-                    <button id="simulate-update-btn" class="mt-4 w-full btn btn-secondary">Check for External Policy Conflicts</button>
-                    <p id="pathway-status" class="text-sm mt-3 text-center text-gray-600 min-h-[20px]"></p>
-                </section>
-            </div>
+            <!-- Document Upload -->
+            <section class="card p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                    1. Upload Your Documents
+                </h2>
 
-            <!-- Right Column: Results -->
-            <section id="results-container" class="card p-6 hidden">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Analysis Results</h2>
-                
-                <!-- Loader -->
-                <div id="loader-container" class="text-center py-10">
-                    <div role="status" class="flex justify-center items-center flex-col">
-                        <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-indigo-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0492C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                        </svg>
-                        <p class="mt-4 text-lg font-medium text-gray-600">Analyzing your documents...</p>
-                        <span class="sr-only">Loading...</span>
-                    </div>
+                <div class="flex justify-between items-center mb-4">
+                    <button id="add-file-btn" class="btn btn-secondary text-sm">
+                        Add Another Doc
+                    </button>
+                    <button id="analyze-btn" class="btn btn-primary">
+                        Analyze Documents
+                    </button>
                 </div>
 
-                <!-- Error Display -->
-                <div id="error-container" class="hidden text-center py-10">
-                    <div class="flex flex-col items-center">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                         <h3 class="mt-2 text-xl font-semibold text-red-700">Analysis Failed</h3>
-                         <p id="error-message" class="mt-1 text-sm text-red-600 bg-red-50 p-3 rounded-md"></p>
-                    </div>
-                </div>
-
-                <!-- Results Display -->
-                <div id="analysis-results" class="hidden space-y-6">
-                    <div id="no-issues-section" class="text-center py-10 hidden">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <h3 class="mt-2 text-xl font-semibold text-gray-800">No Issues Found</h3>
-                        <p class="mt-1 text-gray-600">The documents appear to be consistent.</p>
-                    </div>
+                <div id="file-upload-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     
-                    <!-- Contradictions -->
-                    <div class="hidden">
-                         <h3 class="text-lg font-semibold text-red-700 mb-2">Contradictions</h3>
-                         <div id="contradictions-list" class="space-y-4"></div>
-                    </div>
-                    
-                     <!-- Overlaps -->
-                    <div class="hidden">
-                         <h3 class="text-lg font-semibold text-blue-700 mb-2">Significant Overlaps</h3>
-                         <div id="overlaps-list" class="space-y-4"></div>
+                    <div>
+                        <label for="file-input-1" class="file-input-label flex flex-col items-center justify-center">
+                            <span class="mt-2 text-sm font-medium text-gray-600">
+                                Choose Document 1 (.txt, .md)
+                            </span>
+                        </label>
+                        <input type="file" id="file-input-1" class="hidden" accept=".txt,.md">
                     </div>
 
-                    <button id="generate-report-btn" class="w-full btn btn-primary mt-6 hidden">Generate Summary Report</button>
-                    
-                    <div id="report-section" class="hidden mt-6">
-                         <h3 class="text-lg font-semibold text-gray-700 mb-2">Generated Report</h3>
-                         <textarea id="report-output" readonly class="w-full h-64 p-3 font-mono text-xs bg-gray-100 border border-gray-300 rounded-md"></textarea>
+                    <div>
+                        <label for="file-input-2" class="file-input-label flex flex-col items-center justify-center">
+                            <span class="mt-2 text-sm font-medium text-gray-600">
+                                Choose Document 2 (.txt, .md)
+                            </span>
+                        </label>
+                        <input type="file" id="file-input-2" class="hidden" accept=".txt,.md">
                     </div>
 
                 </div>
+
+                <p id="upload-status" class="text-sm mt-4 text-center text-gray-600"></p>
+            </section>
+
+            <!-- Pathway Live Monitor -->
+            <section class="card p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                    Pathway Live Monitor
+                </h2>
+
+                <p class="text-sm text-gray-600 mb-4">
+                    Compare your first uploaded document against any external text.
+                </p>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Your First Document
+                        </label>
+                        <textarea id="internal-doc-display" rows="5"
+                                  class="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+                                  readonly>
+Upload your first document to enable this feature.
+                        </textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Paste External Text
+                        </label>
+                        <textarea id="external-policy-input" rows="5"
+                                  class="w-full p-2 border border-gray-300 rounded-md bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                                  placeholder="Paste content here..."></textarea>
+                    </div>
+                </div>
+
+                <button id="simulate-update-btn"
+                        class="mt-4 w-full btn btn-secondary">
+                    Compare With External Text
+                </button>
+
+                <p id="pathway-status"
+                   class="text-sm mt-3 text-center text-gray-600"></p>
             </section>
         </div>
-    </div>
-    
-    <!-- Upgrade Modal -->
-    <div id="upgrade-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg p-8 max-w-sm w-full text-center shadow-xl">
-            <h3 class="text-xl font-bold text-gray-900">Usage Limit Reached</h3>
-            <p id="modal-message" class="text-gray-600 my-4">You've used all the analyses available on the Free Tier.</p>
-            <p class="text-gray-600 mb-6">Please upgrade to continue.</p>
-            <button id="modal-upgrade-btn" data-plan="pro" class="btn btn-primary w-full">Upgrade to Pro (₹299/month)</button>
-            <button id="modal-upgrade-enterprise-btn" data-plan="enterprise" class="btn btn-secondary w-full mt-2">Upgrade to Enterprise (₹599/month)</button>
-            <button id="modal-close-btn" class="mt-2 text-sm text-gray-500">Not now</button>
-        </div>
-    </div>
 
-    <!-- Payment Modal Simulation -->
-    <div id="payment-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-xl">
-            <h3 id="payment-title" class="text-xl font-bold text-gray-900 mb-2">Upgrade to Pro Plan</h3>
-            <p id="payment-cost" class="text-gray-600 mb-6">You will be charged ₹299 per month.</p>
-            
-            <div class="space-y-4">
-                <div>
-                    <label for="card-name" class="block text-sm font-medium text-gray-700">Name on Card</label>
-                    <input type="text" id="card-name" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="Rohan Sharma">
-                </div>
-                <div>
-                    <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
-                    <input type="text" id="card-number" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="**** **** **** 4242">
-                </div>
-                <div class="flex space-x-4">
-                    <div class="flex-1">
-                        <label for="card-expiry" class="block text-sm font-medium text-gray-700">Expiry (MM/YY)</label>
-                        <input type="text" id="card-expiry" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="12/28">
-                    </div>
-                    <div class="flex-1">
-                        <label for="card-cvc" class="block text-sm font-medium text-gray-700">CVC</label>
-                        <input type="text" id="card-cvc" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="***">
-                    </div>
-                </div>
+        <!-- RIGHT COLUMN: RESULTS -->
+        <section id="results-container" class="card p-6 hidden">
+
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                2. Analysis Results
+            </h2>
+
+            <!-- Loader -->
+            <div id="loader-container" class="text-center py-10 hidden">
+                <p class="text-lg font-medium text-gray-600">
+                    Analyzing your documents...
+                </p>
             </div>
 
-            <div class="mt-6">
-                <button id="payment-pay-btn" class="btn btn-primary w-full">
-                    <span id="payment-button-text">Pay ₹299 and Upgrade</span>
-                    <div id="payment-loader" class="loader hidden"></div>
+            <!-- Error -->
+            <div id="error-container" class="hidden text-center py-6">
+                <p id="error-message" class="text-red-600"></p>
+            </div>
+
+            <!-- Results -->
+            <div id="analysis-results" class="hidden space-y-6">
+
+                <div>
+                    <h3 class="text-lg font-semibold text-red-700 mb-2">
+                        Contradictions
+                    </h3>
+                    <div id="contradictions-list" class="space-y-4"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-700 mb-2">
+                        Significant Overlaps
+                    </h3>
+                    <div id="overlaps-list" class="space-y-4"></div>
+                </div>
+
+                <button id="generate-report-btn"
+                        class="w-full btn btn-primary mt-6">
+                    Generate Summary Report
                 </button>
-                <button id="payment-close-btn" class="mt-2 w-full text-sm text-gray-500">Cancel Payment</button>
+
+                <div id="report-section" class="hidden mt-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">
+                        Generated Report
+                    </h3>
+                    <textarea id="report-output" readonly
+                              class="w-full h-64 p-3 font-mono text-xs bg-gray-100 border border-gray-300 rounded-md"></textarea>
+                </div>
+
             </div>
-        </div>
-    </div>
 
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg hidden">
-        <span id="toast-message">Payment Successful! You have been upgraded.</span>
-    </div>
+        </section>
 
-    <!-- IMPORTANT: The order of these scripts matters. config.js must come first. -->
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
-
